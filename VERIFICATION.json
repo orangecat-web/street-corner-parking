@@ -1,0 +1,141 @@
+{
+  "checkedAt": "2026-10-07",
+  "officialSources": "5/5 live requests succeeded",
+  "counts": {
+    "taipeiMotor": 438,
+    "taipeiCar": 2165,
+    "newTaipeiFee": 151,
+    "newTaipeiBay": 620,
+    "newTaipeiCar": 27064
+  },
+  "note": "Counts are mixed road segments and individual spaces, may overlap, and are not a deduplicated space total. No motorcycle vacancy claim.",
+  "checks": [
+    "npm run check passed",
+    "npm run build passed",
+    "production index, JS and CSS HTTP 200 verified"
+  ],
+  "limitations": [
+    "Taipei street register lacks district and useful coordinates for most rows",
+    "Taipei motorcycle register is dated 2026-03-27",
+    "New Taipei lot vacancy endpoint supplies car counts only",
+    "Indoor classification based on explicit official name/address/summary words",
+    "No completed browser visual QA"
+  ],
+  "version": "1.6.0",
+  "name": "街角停車",
+  "newSources": "2/2 live paired static + dynamic API requests succeeded",
+  "newCounts": {
+    "taipeiLots": 1746,
+    "newTaipeiLots": 984
+  },
+  "newChecks": [
+    "vehicle-specific capacity and vacancies passed",
+    "official ID join passed",
+    "negative unknown and zero vacancy passed",
+    "TWD97 coordinate validity passed",
+    "npm run build passed",
+    "production index, JS, CSS HTTP 200 passed"
+  ],
+  "v12": {
+    "checks": [
+      "npm run check passed: real Pinia scope/vehicle/filter tests and free-bike boundaries",
+      "npm run build passed",
+      "production index + JS + CSS HTTP 200 passed"
+    ],
+    "liveNewTaipeiStreet": {
+      "count": 27064,
+      "motorcycle": 48,
+      "explicitlyFree": 0,
+      "coordinates": 27064
+    },
+    "taipeiGeometryInspection": {
+      "features": 334283,
+      "missingRate": 328246,
+      "encoding": "UTF-8",
+      "projection": "TWD97",
+      "integration": "Not merged with paid register; cannot infer paid heavy-motorcycle eligibility"
+    },
+    "browserVisualQA": false
+  },
+  "v13": {
+    "checks": [
+      "npm run check passed",
+      "npm run build passed",
+      "production index + JS + CSS HTTP 200 passed"
+    ],
+    "ui": "Native keyboard-accessible details/summary; initially collapsed; no filter reset on collapse; independently scrollable controls and results",
+    "browserVisualQA": false
+  },
+  "v14": {
+    "checks": [
+      "npm run build passed"
+    ],
+    "change": "Street vacancy hidden; unknown lot vacancy hidden in list, detail and map tooltip; valid zero and totals retained",
+    "browserVisualQA": false,
+    "vehicleAccess": {
+      "checkedAt": "2026-10-07",
+      "checks": [
+        "official Taipei fare enum documentation verified",
+        "live Taipei and New Taipei static lots requests succeeded",
+        "positive capacity, CM shared lots, zero capacity, clear denial, conditional restrictions, ambiguous heavy-motor wording, monthly-only and cross-vehicle fee tests passed",
+        "npm run check passed",
+        "npm run build passed",
+        "production index + JS + CSS HTTP 200 passed"
+      ],
+      "notes": [
+        "No exhaustive interpretation of free-text restrictions; unresolved conditions stay unmarked",
+        "Zero capacity is not a ban",
+        "New Taipei generic heavy-motor wording is not automatically classified as large heavy motorcycles"
+      ],
+      "browserVisualQA": false
+    },
+    "compactFeatures": {
+      "checkedAt": "2026-10-07",
+      "checks": [
+        "npm run build passed",
+        "npm run check passed: five dots, monthly rates versus availability, disability counts and vehicle separation, heavy shared versus dedicated spaces",
+        "live static sources normalized monthlyInfo/disability/heavyParking for all 1746 Taipei and 984 New Taipei accepted records",
+        "production index + JS + CSS HTTP 200 passed"
+      ],
+      "sourceReview": "NTPC staging and production dataset have same dataset ID; production API retained. Parkinginfo GoogleMap page read timed out / returned HTTP 502; additional data feed not verified or connected.",
+      "limitations": [
+        "NTPC published basic dataset lacks separate heavy-motor and disability capacity columns",
+        "Disability counts extracted from explicit official summary text; missing is not zero",
+        "No browser visual QA"
+      ]
+    }
+  },
+  "v15": {
+    "checkedAt": "2026-10-07T01:15:33+08:00",
+    "checks": [
+      "npm run check passed",
+      "npm run build passed",
+      "production index + JS + CSS HTTP 200 and UI v1.5 passed",
+      "live New Taipei static + dynamic full pagination succeeded; no warning",
+      "Linkou 170009 PAYEX ambiguous heavy evidence preserved"
+    ],
+    "newTaipeiLots": 1367,
+    "knownCarVacancyRecords": 420,
+    "countsNote": "Accepted rows include duplicate official IDs; not a distinct lot count. Earlier counts above are historical truncated snapshots.",
+    "browserVisualQA": false,
+    "limitations": [
+      "Generic heavy wording does not distinguish ordinary and large heavy motorcycles",
+      "Official duplicate IDs and vacancy field inconsistencies remain unresolved"
+    ]
+  },
+  "v16": {
+    "checkedAt": "2026-10-07",
+    "checks": [
+      "npm run check passed including original fee preservation, vehicle grouping, comma and conditional text retention, mixed clauses fallback",
+      "npm run build passed",
+      "production index + JS + CSS HTTP 200; v1.6 and evidence disclosure present"
+    ],
+    "ui": [
+      "Shared ParkingStatus component in list and floating detail",
+      "Grouped verbatim fee text with notes fallback",
+      "Collapsed original fee and eligibility evidence",
+      "General limitations moved to parking rules"
+    ],
+    "browserVisualQA": false
+  }
+}
