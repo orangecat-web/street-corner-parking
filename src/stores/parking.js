@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia'
 import {computed,ref,watch} from 'vue'
 import {matchesVehicle} from '../parking-display.js'
+import {normalizeSearch} from '../parking-search.js'
 import {fetchParking,sourceKeys} from '../api/parking.js'
 export const useParkingStore=defineStore('parking',()=>{
  const records=ref([]), statuses=ref({}), loading=ref(false)
@@ -12,7 +13,10 @@ export const useParkingStore=defineStore('parking',()=>{
  watch(city,()=>{district.value='全部'},{flush:'sync'})
  function resetFilters(){vehicle.value='全部';facility.value='全部';city.value='全部';district.value='全部';type.value='全部';keyword.value=''}
  const districts=computed(()=>['全部',...new Set(records.value.filter(p=>city.value==='全部'||p.city===city.value).map(p=>p.district))].sort((a,b)=>a==='全部'?-1:b==='全部'?1:a.localeCompare(b,'zh-Hant')))
- const filtered=computed(()=>records.value.filter(p=>(scope.value==='全部'||p.scope===scope.value)&&matchesVehicle(p,vehicle.value)&&(facility.value==='全部'||p.facility===facility.value)&&(city.value==='全部'||p.city===city.value)&&(district.value==='全部'||p.district===district.value)&&(type.value==='全部'||p.type===type.value)&&`${p.name}${p.address}${p.range||''}`.includes(keyword.value.trim())))
+ const filtered=computed(()=>{
+  const query=normalizeSearch(keyword.value)
+  return records.value.filter(p=>(scope.value==='全部'||p.scope===scope.value)&&matchesVehicle(p,vehicle.value)&&(facility.value==='全部'||p.facility===facility.value)&&(city.value==='全部'||p.city===city.value)&&(district.value==='全部'||p.district===district.value)&&(type.value==='全部'||p.type===type.value)&&[p.name,p.address,p.range].some(text=>normalizeSearch(text).includes(query)))
+ })
  const visible=computed(()=>filtered.value.slice(0,limit.value))
  const successful=computed(()=>Object.values(statuses.value).filter(s=>s.state==='success').length)
  async function load(){

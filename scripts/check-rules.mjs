@@ -153,3 +153,30 @@ assert.equal(feeSections('汽車30元、機車20元')[0].title,'備註')
 assert.equal(feeSections('依現場公告')[0].title,'備註')
 assert.deepEqual(feeSections(''),[])
 console.log('收費原句保留、車種分組、千分位／優惠條件及混合段落備註檢查通過')
+
+// 真正的 store 篩選驗證：中文、半形、全形路段數字互通，地名不改寫。
+const {normalizeSearch}=await import('../src/parking-search.js')
+setActivePinia(createPinia())
+const searchStore=useParkingStore()
+searchStore.scope='lot'
+searchStore.records=[
+ {id:'digit',scope:'lot',name:'明志停車場',address:'新北市泰山區明志路1段99號'},
+ {id:'chinese',scope:'lot',name:'第二停車場',address:'明志路二段10號'},
+ {id:'name',scope:'lot',name:'一心路停車場',address:'三重區一心路1號'}
+]
+for(const query of ['明志路1段','明志路一段','明志路１段',' 明志路 一 段 ']) {
+ searchStore.keyword=query;assert.deepEqual(searchStore.filtered.map(p=>p.id),['digit'])
+}
+for(const query of ['明志路2段','明志路二段','明志路２段']) {
+ searchStore.keyword=query;assert.deepEqual(searchStore.filtered.map(p=>p.id),['chinese'])
+}
+searchStore.keyword='一心路';assert.deepEqual(searchStore.filtered.map(p=>p.id),['name'])
+searchStore.keyword='1心路';assert.equal(searchStore.filtered.length,0)
+searchStore.keyword='明志路三段';assert.equal(searchStore.filtered.length,0)
+searchStore.keyword='';assert.equal(searchStore.filtered.length,3)
+assert.equal(normalizeSearch('三重區一心路十一段'),normalizeSearch('三重區一心路11段'))
+assert.equal(normalizeSearch('明志路二十段'),normalizeSearch('明志路20段'))
+assert.equal(normalizeSearch('明志路一百段'),'明志路一百段')
+assert.equal(searchStore.records[0].address,'新北市泰山區明志路1段99號')
+for(const row of lotStatusRows({scope:'lot'}))assert.doesNotMatch(row.reason,/更新.*伺服器/)
+console.log('中文／阿拉伯／全形路段搜尋、地名與官方原址保留、民眾用語檢查通過')

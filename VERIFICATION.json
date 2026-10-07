@@ -21,7 +21,7 @@
     "Indoor classification based on explicit official name/address/summary words",
     "No completed browser visual QA"
   ],
-  "version": "1.6.0",
+  "version": "1.7.0",
   "name": "街角停車",
   "newSources": "2/2 live paired static + dynamic API requests succeeded",
   "newCounts": {
@@ -135,6 +135,15 @@
       "Grouped verbatim fee text with notes fallback",
       "Collapsed original fee and eligibility evidence",
       "General limitations moved to parking rules"
+    ],
+    "browserVisualQA": false
+  },
+  "v17": {
+    "checkedAt": "2026-10-07",
+    "checks": [
+      "npm run check passed: actual Pinia search for Arabic, Chinese and fullwidth section numbers in both directions; whitespace, place names, empty and absent searches, original address preservation",
+      "npm run build passed",
+      "production index + JS + CSS HTTP 200; v1.7 present and server-update wording absent"
     ],
     "browserVisualQA": false
   }

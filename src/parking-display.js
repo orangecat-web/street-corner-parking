@@ -23,7 +23,7 @@ export function vacancyTone(s) {
 
 // 舊版 API 沒有逐車種判定時，不沿用無依據的重機布林值。
 export function accessRows(p) {
- return Object.entries(vehicleNames).map(([key,label])=>({key,vehicle:label,...(p.vehicleAccess?.[key]||((p.capacity?.[key]||0)>0?{state:'allowed',label:'可停',reason:`官方列有該車種格位 ${p.capacity[key]} 格；其他營運限制依場方公告`}:{state:'unmarked',label:'官方未標註',reason:'尚無明確車種依據，請更新 API 伺服器或向場方確認'}))}))
+ return Object.entries(vehicleNames).map(([key,label])=>({key,vehicle:label,...(p.vehicleAccess?.[key]||((p.capacity?.[key]||0)>0?{state:'allowed',label:'可停',reason:`官方列有該車種格位 ${p.capacity[key]} 格；其他營運限制依場方公告`}:{state:'unmarked',label:'官方未標註',reason:'尚無明確車種依據，請向場方確認'}))}))
 }
 export function lotKind(p) {
  if(p.lotVehicleKind)return p.lotVehicleKind
@@ -36,7 +36,7 @@ export function lotKind(p) {
 export function lotStatusRows(p) {
  const short={car:'汽車',motorcycle:'機車',heavy:'大重'}
  const rows=accessRows(p).map(row=>({...row,short:short[row.key],state:row.label.includes('臨停未標註')?'unmarked':row.state}))
- const unknown={state:'unmarked',label:'官方未標註',reason:'API 未提供此項資訊，請更新伺服器或向場方確認'}
+ const unknown={state:'unmarked',label:'官方未標註',reason:'官方資料尚未提供此項資訊，請向場方確認'}
  return [...rows,{key:'monthly',short:'月租',vehicle:'月租',...(p.monthlyInfo||unknown)},{key:'disability',short:'身障',vehicle:'身障專用格',...(p.disability||unknown)}]
 }
 

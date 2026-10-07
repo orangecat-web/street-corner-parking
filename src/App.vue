@@ -37,7 +37,7 @@ onMounted(()=>store.load())
     .brand-mark P
     .brand
       h1 街角停車
-      span 雙北路邊／停車場查詢 · v1.6
+      span 雙北路邊／停車場查詢 · v1.7
     .top-actions
       a.sources-button(href="#rules" :aria-current="rulesPage?'page':undefined") 停放規則
       button.sources-button(@click="showSources=!showSources") 資料來源
