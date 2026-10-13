@@ -82,7 +82,9 @@ npm start
 
 可執行 Node 的主機：`npm ci` → `npm run build` → `npm start`。正式埠可用 `PORT` 環境變數；反向代理保持網站和 `/api/parking/*` 同來源。只有 PHP 的主機需另外放 Node 代理，或之後另寫 PHP 代理。
 
-未含帳密、API 金鑰或定位權限。地圖連線 OpenStreetMap，地址搜尋連線 Google。保留地圖署名。
+未含帳密或 API 金鑰。地圖連線 OpenStreetMap，地址搜尋連線 Google。保留地圖署名。
+
+地圖「定位我的位置」按下後才請求瀏覽器位置權限，以藍點與精度範圍標示單次定位並移到附近；不持續追蹤、不儲存或上傳使用者座標。正式網站需 HTTPS（本機 localhost 可用）；拒絕權限、定位逾時或不支援時顯示提示，仍可搜尋停車資料。重新定位失敗會保留上次定位並提示不是最新位置。
 
 ## 驗證
 

@@ -3,11 +3,39 @@ import {computed,onMounted,onBeforeUnmount,watch,ref} from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import {spaceSummary,vacancyTone} from '../parking-display'
+import {locateOnce} from '../geolocation'
 const props=defineProps({records:Array,selected:Object,vehicle:String})
-const emit=defineEmits(['select'])
+const emit=defineEmits(['select','locate'])
 const host=ref(null),tileError=ref(false),drawnCount=ref(0)
+const locating=ref(false),locationMessage=ref(''),locationError=ref(false),userLocation=ref(null)
 const points=computed(()=>props.records.filter(p=>p.lat&&p.lng))
-let map,layer
+let map,layer,locationLayer,locationRequest
+const locationErrors={denied:'未允許定位，請在瀏覽器網站設定開啟位置權限後再試。',unavailable:'目前無法取得位置，請確認裝置定位已開啟後再試。',timeout:'定位逾時，請移到訊號較好的地方再試。',unsupported:'此瀏覽器不支援定位，請改用支援定位的瀏覽器。',insecure:'定位需要安全連線，請以 HTTPS 開啟網站。'}
+async function locate(){
+ if(locating.value||!map)return
+ locating.value=true;locationError.value=false;locationMessage.value='正在取得你的位置…'
+ const request=new AbortController();locationRequest=request
+ try{
+  const coords=await locateOnce({signal:request.signal})
+  userLocation.value=coords
+  const point=[coords.latitude,coords.longitude]
+  // 使用獨立圖層，停車格重畫／篩選不會移除定位點與精度範圍。
+  locationLayer.clearLayers()
+  const accuracy=L.circle(point,{radius:coords.accuracy,color:'#1677ff',weight:1,fillOpacity:0.12,interactive:false}).addTo(locationLayer)
+  L.circleMarker(point,{radius:8,color:'#fff',weight:3,fillColor:'#1677ff',fillOpacity:1,className:'user-location-marker'}).addTo(locationLayer).bindTooltip('我的位置')
+  emit('locate')
+  if(coords.accuracy>0)map.fitBounds(accuracy.getBounds(),{padding:[60,100],maxZoom:16})
+  else map.setView(point,16)
+  locationMessage.value=`藍點是你的位置，定位精度約 ${Math.ceil(coords.accuracy).toLocaleString()} 公尺；請依現場確認。`
+ }catch(error){
+  if(error.code!=='cancelled'){
+   locationError.value=true
+   locationMessage.value=(locationErrors[error.code]||locationErrors.unavailable)+(userLocation.value?' 地圖保留上次定位，並非最新位置。':'')
+  }
+ }finally{
+  if(locationRequest===request){locating.value=false;locationRequest=null}
+ }
+}
 function marker(p){
  const s=spaceSummary(p,props.vehicle)
  const isLot=p.scope==='lot'
@@ -31,23 +59,27 @@ function draw(){
 }
 function fit(){
  if(!map)return
- if(points.value.length){map.fitBounds(L.latLngBounds(points.value.map(p=>[p.lat,p.lng])),{padding:[50,90],maxZoom:15})}
+ if(!userLocation.value&&points.value.length){map.fitBounds(L.latLngBounds(points.value.map(p=>[p.lat,p.lng])),{padding:[50,90],maxZoom:15})}
  draw()
 }
 onMounted(()=>{
  map=L.map(host.value,{zoomControl:false}).setView([25.035,121.51],12)
  L.control.zoom({position:'bottomright'}).addTo(map)
  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).on('tileerror',()=>tileError.value=true).addTo(map)
- layer=L.layerGroup().addTo(map);map.on('moveend',draw);fit()
+ layer=L.layerGroup().addTo(map);locationLayer=L.layerGroup().addTo(map);map.on('moveend',draw);fit()
 })
 watch(()=>props.records,fit)
 watch(()=>props.vehicle,draw)
 watch(()=>props.selected,p=>{if(map&&p?.lat&&p?.lng)map.setView([p.lat,p.lng],17);draw()})
-onBeforeUnmount(()=>map?.remove())
+onBeforeUnmount(()=>{locationRequest?.abort();map?.remove()})
 </script>
 <template lang="pug">
 .map-panel
   .map-canvas(ref="host" aria-label="雙北停車地圖")
+  //- 按下才請求位置；狀態由 live region 提供給輔助技術。
+  .map-location
+    button.locate-button(type="button" @click="locate" :disabled="locating" :aria-busy="locating") {{ locating ? '定位中…' : '定位我的位置' }}
+    p.location-status(role="status" aria-live="polite" aria-atomic="true" :class="{error:locationError}") {{ locationMessage }}
   .map-caption
     .legend-line
       span.legend-symbol.car 汽

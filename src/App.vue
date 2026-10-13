@@ -131,7 +131,7 @@ onMounted(()=>store.load())
         span {{ store.successful }}/7 個資料來源已連線
         span 空位資料依官方回報
     section.map-workspace(aria-label="地圖及停車資訊")
-      ParkingMap(:records="filtered" :selected="selected" :vehicle="vehicle" @select="selected=$event")
+      ParkingMap(:records="filtered" :selected="selected" :vehicle="vehicle" @select="selected=$event" @locate="selected=null")
       .map-title
         span 雙北試跑
         h2 {{ selected ? selected.name : '路邊停車地圖' }}

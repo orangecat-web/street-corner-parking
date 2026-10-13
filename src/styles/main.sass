@@ -196,6 +196,32 @@ input, select
   height: 100%
 .map-canvas
   background: #dce7e7
+// 定位控制固定在標題下方，手機亦不遮住縮放按鈕與圖例。
+.map-location
+  position: absolute
+  top: 130px
+  right: 24px
+  max-width: calc(100% - 48px)
+  z-index: 800
+  display: flex
+  flex-direction: column
+  align-items: flex-end
+.locate-button
+  min-height: 44px
+  box-shadow: 0 3px 12px #0004
+.location-status
+  max-width: 300px
+  margin-top: 8px
+  padding: 8px 12px
+  background: $bg
+  border-radius: 8px
+  font-size: 14px
+  &:empty
+    display: none
+@media (max-width: 800px)
+  .map-location
+    right: 14px
+    max-width: calc(100% - 28px)
 .map-title
   position: absolute
   top: 24px

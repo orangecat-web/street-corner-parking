@@ -8,7 +8,7 @@
     "build": "vite build",
     "start": "node server/index.mjs",
     "preview": "node server/index.mjs",
-    "check": "node scripts/check-rules.mjs"
+    "check": "node scripts/check-rules.mjs && node --test scripts/geolocation.test.mjs"
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
