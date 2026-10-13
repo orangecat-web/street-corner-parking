@@ -1,5 +1,5 @@
 <script setup>
-import {computed,onMounted,onBeforeUnmount,watch,ref} from 'vue'
+import {computed,onMounted,onBeforeUnmount,watch,ref,nextTick} from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import {spaceSummary,vacancyTone} from '../parking-display'
@@ -18,14 +18,28 @@ async function locate(){
  try{
   const coords=await locateOnce({signal:request.signal})
   userLocation.value=coords
+  const currentLocation=userLocation.value
   const point=[coords.latitude,coords.longitude]
   // 使用獨立圖層，停車格重畫／篩選不會移除定位點與精度範圍。
   locationLayer.clearLayers()
-  const accuracy=L.circle(point,{radius:coords.accuracy,color:'#1677ff',weight:1,fillOpacity:0.12,interactive:false}).addTo(locationLayer)
+  L.circle(point,{radius:coords.accuracy,color:'#1677ff',weight:1,fillOpacity:0.12,interactive:false}).addTo(locationLayer)
   L.circleMarker(point,{radius:8,color:'#fff',weight:3,fillColor:'#1677ff',fillOpacity:1,className:'user-location-marker'}).addTo(locationLayer).bindTooltip('我的位置')
   emit('locate')
-  if(coords.accuracy>0)map.fitBounds(accuracy.getBounds(),{padding:[60,100],maxZoom:16})
-  else map.setView(point,16)
+  // 先等所選場站／地址嵌入移除，再停止舊移動並直接以定位點置中。
+  // 精度圈只表達誤差，不用來決定縮放，避免粗略定位拉遠到全市。
+  await nextTick()
+  // 等待已排程的縮放開始；Leaflet 縮放進行中可能忽略新的 setView。
+  await new Promise(resolve=>requestAnimationFrame(resolve))
+  if(request.signal.aborted)return
+  map.stop();map.invalidateSize({pan:false})
+  map.once('moveend',()=>{
+   // 舊動畫完成後再確認定位視野；較新的定位優先，卸載後不再操作。
+   if(map&&userLocation.value===currentLocation)map.setView(point,16,{animate:false})
+  })
+  map.setView(point,16,{animate:false})
+  // 手機地圖在列表下方；成功後將定位點帶入使用者可見的畫面。
+  const bounds=host.value.getBoundingClientRect()
+  if(bounds.top<0||bounds.bottom>window.innerHeight)host.value.scrollIntoView({block:'center',behavior:'instant'})
   locationMessage.value=`藍點是你的位置，定位精度約 ${Math.ceil(coords.accuracy).toLocaleString()} 公尺；請依現場確認。`
  }catch(error){
   if(error.code!=='cancelled'){
@@ -71,7 +85,11 @@ onMounted(()=>{
 watch(()=>props.records,fit)
 watch(()=>props.vehicle,draw)
 watch(()=>props.selected,p=>{if(map&&p?.lat&&p?.lng)map.setView([p.lat,p.lng],17);draw()})
-onBeforeUnmount(()=>{locationRequest?.abort();map?.remove()})
+onBeforeUnmount(()=>{
+ locationRequest?.abort()
+ const previousMap=map;map=null
+ previousMap?.off('moveend',draw);previousMap?.stop();previousMap?.remove()
+})
 </script>
 <template lang="pug">
 .map-panel
